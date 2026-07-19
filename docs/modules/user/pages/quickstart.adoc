@@ -733,23 +733,21 @@ crw------- 1 root root 10, 223 Jan 17 09:08 /dev/uinput
 .Create `udev` rules under `/etc/udev/rules.d/85-wolf-virtual-inputs.rules`
 [source,bash]
 ....
-# Allows Wolf to access /dev/uinput (needed to create the virtual gamepad/keyboard/mouse)
+# Allows Wolf to access /dev/uinput (needed to create the virtual gamepad)
 KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput", TAG+="uaccess"
 
 # Allows Wolf to access /dev/uhid (needed for DualSense emulation)
 KERNEL=="uhid", MODE="0660", GROUP="input", TAG+="uaccess"
 
-# Move the virtual keyboard and mouse onto a phantom seat (seat9)
-SUBSYSTEMS=="input", ATTRS{id/vendor}=="ab00", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9"
-
 # Wolf virtual controllers: the gamepads plus, for the DualSense, its "Touchpad"
 # and "Motion Sensors" child devices and its /dev/hidraw* node. Matching the
-# "Wolf " name prefix (glob) covers every current and future sub-device, then
-# parks them on seat9 and strips the uaccess ACL so the host desktop user can't
-# read them. See https://github.com/games-on-whales/wolf/issues/451
-SUBSYSTEM=="input",  ATTR{name}=="Wolf *",  MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
-SUBSYSTEMS=="input", ATTRS{name}=="Wolf *", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
-KERNEL=="hidraw*",   ATTRS{name}=="Wolf *", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+# "Wolf *virtual*" name glob covers every current and future sub-device (they are
+# all named "Wolf ... (virtual) ...") without matching unrelated "Wolf" hardware,
+# then parks them on seat9 and strips the uaccess ACL so the host desktop user
+# can't read them. See https://github.com/games-on-whales/wolf/issues/451
+SUBSYSTEM=="input",  ATTR{name}=="Wolf *virtual*",  MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+SUBSYSTEMS=="input", ATTRS{name}=="Wolf *virtual*", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+KERNEL=="hidraw*",   ATTRS{name}=="Wolf *virtual*", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
 ....
 
 Reload the udev rules either by rebooting or run:

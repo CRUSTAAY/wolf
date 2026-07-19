@@ -164,9 +164,9 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 [TIP]
 ====
-The bundled rules match every Wolf device by its `Wolf ` name prefix, so they
-keep working even if a controller's exact product name changes. If you maintain
-your own rules, prefer the prefix glob over hard-coded names — an out-of-date
+The bundled rules match every Wolf device by the `Wolf *virtual*` name glob, so
+they keep working even if a controller's exact product name changes. If you
+maintain your own rules, prefer the glob over hard-coded names — an out-of-date
 name (e.g. `Wolf PS5 (virtual) pad` after it was renamed to
 `Wolf DualSense (virtual) pad`) silently stops isolating that device.
 ====

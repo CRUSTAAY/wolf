@@ -160,7 +160,18 @@ node_nonroot_access() {
 rule_matches_name() {
   local name="$1"
   [ -r "$RULES_FILE" ] || return 2
-  grep -qF "\"$name\"" "$RULES_FILE"
+  # Pull every ATTR{name}/ATTRS{name} match pattern out of the rules file and
+  # test each against the device name as a shell glob. This handles both exact
+  # names and globs like "Wolf *virtual*", so coverage stays correct regardless
+  # of how the rules are written.
+  local pat
+  while IFS= read -r pat; do
+    # shellcheck disable=SC2254
+    case "$name" in
+      $pat) return 0 ;;
+    esac
+  done < <(grep -oE 'ATTRS?\{name\}=="[^"]*"' "$RULES_FILE" | sed -E 's/.*=="([^"]*)"/\1/')
+  return 1
 }
 
 cmd_host() {
@@ -196,8 +207,8 @@ cmd_host() {
   fi
   if [ "$leaks" -gt 0 ]; then
     bad "$leaks device(s) readable by the host desktop user — controller input is LEAKING to the host."
-    echo  "     Fix: ensure $RULES_FILE has a MODE=\"0660\",GROUP=\"input\" rule matching each name above"
-    echo  "     (note: DualSense pad name is \"Wolf DualSense (virtual) pad\", and its touchpad node needs its own rule),"
+    echo  "     Fix: (re)install the shipped 85-wolf.rules into $RULES_FILE — its \"Wolf *virtual*\""
+    echo  "     glob covers every name above (pads, the DualSense touchpad/motion child nodes, and hidraw),"
     echo  "     then: sudo udevadm control --reload-rules && sudo udevadm trigger, and re-plug the controller."
     return 1
   elif [ "$uncovered" -gt 0 ]; then

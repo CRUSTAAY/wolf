@@ -1,12 +1,8 @@
-# Allows Wolf to access /dev/uinput (needed to create the virtual gamepad/keyboard/mouse)
+# Allows Wolf to access /dev/uinput (needed to create the virtual gamepad)
 KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput", TAG+="uaccess"
 
 # Allows Wolf to access /dev/uhid (needed for DualSense emulation)
 KERNEL=="uhid", MODE="0660", GROUP="input", TAG+="uaccess"
-
-# Move the virtual keyboard and mouse onto a phantom seat (seat9) so the host's
-# logged-in desktop user cannot read them.
-SUBSYSTEMS=="input", ATTRS{id/vendor}=="ab00", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9"
 
 # Wolf virtual controllers: the gamepads (Xbox / DualSense / Nintendo), the
 # DualSense's "Touchpad" and "Motion Sensors" child input devices, and the
@@ -17,11 +13,12 @@ SUBSYSTEMS=="input", ATTRS{id/vendor}=="ab00", MODE="0660", GROUP="input", ENV{I
 # desktop user an ACL (uaccess) on them, so the streamed controller also drives
 # the host desktop. See https://github.com/games-on-whales/wolf/issues/451
 #
-# We match on the "Wolf " name prefix (glob) so every current and future
-# sub-device is covered regardless of the exact product name, then (a) park them
-# on the phantom seat9 and (b) strip the uaccess ACL. Both the device's own name
-# (ATTR, for uinput pads) and any ancestor's name (ATTRS, for the uhid DualSense
-# child devices and hidraw node) are matched.
-SUBSYSTEM=="input",  ATTR{name}=="Wolf *",  MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
-SUBSYSTEMS=="input", ATTRS{name}=="Wolf *", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
-KERNEL=="hidraw*",   ATTRS{name}=="Wolf *", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+# We match on the "Wolf *virtual*" name glob: every device Wolf creates is named
+# "Wolf ... (virtual) ..." (or "Wolf mouse virtual device"), so this covers all
+# current and future sub-devices without matching unrelated "Wolf" hardware.
+# We then (a) park them on the phantom seat9 and (b) strip the uaccess ACL. Both
+# the device's own name (ATTR, for uinput pads) and any ancestor's name (ATTRS,
+# for the uhid DualSense child devices and hidraw node) are matched.
+SUBSYSTEM=="input",  ATTR{name}=="Wolf *virtual*",  MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+SUBSYSTEMS=="input", ATTRS{name}=="Wolf *virtual*", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
+KERNEL=="hidraw*",   ATTRS{name}=="Wolf *virtual*", MODE="0660", GROUP="input", ENV{ID_SEAT}="seat9", TAG-="uaccess"
