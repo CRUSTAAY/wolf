@@ -14,8 +14,8 @@ KERNEL=="uhid", MODE="0660", GROUP="input", TAG+="uaccess"
 # the host desktop. See https://github.com/games-on-whales/wolf/issues/451
 #
 # We match on the "Wolf *virtual*" name glob: every device Wolf creates is named
-# "Wolf ... (virtual) ..." (or "Wolf mouse virtual device"), so this covers all
-# current and future sub-devices without matching unrelated "Wolf" hardware.
+# "Wolf ... (virtual) ...", so this covers all current and future sub-devices
+# without matching unrelated "Wolf" hardware.
 # We then (a) park them on the phantom seat9 and (b) strip the uaccess ACL. Both
 # the device's own name (ATTR, for uinput pads) and any ancestor's name (ATTRS,
 # for the uhid DualSense child devices and hidraw node) are matched.
